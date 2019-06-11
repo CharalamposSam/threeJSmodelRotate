@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>THREE JS TEST</title>
+    <style>
+        body { margin: 0;
+        height: 100vh;
+        width: 100vw;
+        
+        }
+        header {
+            height: 10vh;
+            display: grid;
+            place-items: center;
+            background-color: #787878;
+        }
+        main {
+            max-height: 80vw;
+            cursor: pointer;
+            background: #787878 url( 'bg.png' );
+        }
+        main:active {
+            cursor: all-scroll;
+        }
+        canvas { 
+            width: 100%; 
+            height: 100%; 
+            display: block;
+        }
+        footer {
+            height: 10vh;
+            display: grid;
+            place-items: center;
+            background-color: #787878;
+        }
+    </style>
+</head>
+<body>
+    <header>Header</header>
+    <main>
+        <div id="div"></div>
+    </main>
+    <footer>Footer</footer>
+    <script src="three.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="FBXLoader.js"></script>
+    <script src="Inflate.min.js"></script>
+    <script>
+        var scene = new THREE.Scene()
+        var camera = new THREE.PerspectiveCamera( 95, (window.innerWidth / 2) /  (window.innerHeight / 2), 0.1, 1000 )
+        var main = document.querySelector( 'main' )
+        
+        var renderer = new THREE.WebGLRenderer( { alpha:true } )
+        //var renderer = new THREE.WebGLRenderer()
+        renderer.setSize( window.innerWidth / 2, window.innerHeight / 2)
+        document.getElementById("div").appendChild( renderer.domElement )
+
+        
+
+        window.addEventListener( 'resize', initSize )
+        window.addEventListener( 'load', initSize )
+
+        function initSize( ) {
+            console.log(  )
+            var width = main.clientWidth
+            var height = main.clientHeight
+            renderer.setSize( width, height )
+            camera.aspect = width / height
+            camera.updateProjectionMatrix()
+        }
+
+
+        //var ambientLight = new THREE.AmbientLight( 0xFFFFFF, 1 )
+        //scene.add( ambientLight )
+
+        var keyLight = new THREE.DirectionalLight(new THREE.Color('hsl(30, 100%, 75%)'), 1.0)
+        keyLight.position.set(-100, 0, 100)
+        
+        var fillLight = new THREE.DirectionalLight(new THREE.Color('hsl(240, 100%, 75%)'), 0.75)
+        fillLight.position.set(-100, 0, 100)
+        
+        var backLight = new THREE.DirectionalLight(0xFFFFFF, 1 )
+        backLight.position.set(100, 0, -100).normalize()
+        
+        
+        scene.add( keyLight )
+        scene.add( fillLight )
+        scene.add( backLight )
+
+
+
+        controls = new THREE.OrbitControls( camera, renderer.domElement )
+        //console.log(controls)
+        controls.enableZoom = false
+        controls.enablePan = false
+        controls.enableKeys = false
+        controls.maxPolarAngle = 1.6
+        controls.minPolarAngle = 1.2
+        controls.target.set( 0, 0, 0 )
+        controls.rotateSpeed = .6
+
+
+            var objects = []  
+            var loader = new THREE.FBXLoader()
+            
+
+       
+                    loader.load( 'sinon-sword-art-online.fbx', function ( obj ) {
+                      //console.log(obj)  
+                      obj.position.set(0,-.8,0)
+                      obj.scale.set(1.3,1.3,1.3)
+                      scene.add( obj );
+                      
+                      
+                      scene.traverse(function(children){
+                          objects.push(children)
+                      })
+                     
+                    });
+                    
+                    var raycaster = new THREE.Raycaster();
+                    var mouse = new THREE.Vector2();
+            
+                    //window.addEventListener( 'click', onDocumentMouseDown, false );
+                    window.addEventListener( 'scroll', test, false );
+
+
+                    function onDocumentMouseDown(e){
+                        e.preventDefault()
+                        
+                        mouse.x = ( event.clientX / renderer.domElement.width ) * 2 - 1
+                        mouse.y = - ( event.clientY / renderer.domElement.height ) * 2 + 1
+                        raycaster.setFromCamera(mouse, camera)
+                        var intersects = raycaster.intersectObjects( objects )
+                        var color = (Math.random() * 0xffffff)
+                        
+                        if(intersects.length > 0){
+                            intersects[0].object.material.color.setHex(color)
+                        }
+                        console.log(intersects)
+                    }
+
+
+                    let aa = document.getElementById("div")
+                    
+                    function test(){
+
+
+                        for(var i=0; i<objects.length; i++){
+                            objects[i].rotation.y = Math.min(1, window.scrollY / 300)
+                            //console.log(objects[i])
+                            
+                            
+                        }
+                        //console.log(objects)
+                        
+                    }
+        camera.position.z = 1
+
+        // game logic
+        var update = function() {
+
+        }
+
+        // draw Scene
+        var render = function(){
+            renderer.render( scene, camera )
+        }
+
+        // run game loop (update, render, reapeat)
+        var GameLoop = function(){
+            requestAnimationFrame( GameLoop )
+
+            update()
+            render()
+        }
+
+        GameLoop()
+    </script>
+</body>
+</html>
